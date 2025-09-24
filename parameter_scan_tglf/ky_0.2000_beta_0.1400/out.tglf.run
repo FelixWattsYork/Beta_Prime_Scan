@@ -1,0 +1,9 @@
+[Parsing data in input.tglf]
+no mpi
+  D(R) =  3.0436E+01  D(I) = -7.2095E+00
+  kinetic species =          6  non-kinetic species =          0
+     ky:  2.2610E-01
+     ft:  5.3030E-01
+Guassian width =   8.7066E-01
+(wr,wi):  7.8967E-01  3.3315E-02
+(wr,wi):  0.0000E+00  0.0000E+00

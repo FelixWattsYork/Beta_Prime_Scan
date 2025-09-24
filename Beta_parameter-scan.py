@@ -5,15 +5,21 @@ from typing import Union
 import numpy as np
 import copy
 import subprocess
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent   # repo root if this file sits at repo root
+
+
+
 
 STEP_CASE = "SPR-045"
 
 def main():
     in_loc = f"/home/Felix/Documents/Physics_Work/Project_Codes/GS2_TGLF/TGLF/STEP_CASES/{STEP_CASE}/input.tglf"
     pyro = Pyro(gk_file=in_loc, gk_code="TGLF")
-    pyro.numerics.nky = 1
-    pyro.numerics.gamma_exb = 0.0
-    pyro.local_species.electron.domega_drho = 0.0
+    # pyro.numerics.nky = 1
+    # pyro.numerics.gamma_exb = 0.0
+    # pyro.local_species.electron.domega_drho = 0.0
 
     # Use existing parameter with more realistic ky range
     param_1 = "ky" 
@@ -21,7 +27,7 @@ def main():
 
     # Add beta parameter with realistic values
     param_2 = "beta"
-    values_2 = np.arange(0, 0.20, 0.02)
+    values_2 = np.arange(0, 0.20, 0.01)
     
     # Dictionary of param and values
     param_dict = {param_1: values_1, param_2: values_2}
@@ -34,7 +40,6 @@ def main():
         value_separator="_",
         parameter_separator="_",
         file_name="input.tglf",
-        base_directory="beta_scan_runs"
     )
 
     # Add function to enforce consistent beta prime
@@ -46,7 +51,6 @@ def main():
     
     def enforce_beta_prime(pyro):
         pyro.enforce_consistent_beta_prime()
-        return pyro    
 
     # If there are kwargs to function then define here
     param_2_kwargs = {}
@@ -54,34 +58,32 @@ def main():
     # Add function to pyro
     pyro_scan_tglf.add_parameter_func(param_2, enforce_beta_prime, param_2_kwargs)
 
+
     # Create scan directory and write input files
     try:
         pyro_scan_tglf.write(
             file_name="input.tglf",
-            base_directory="parameter_scan_tglf",
+            base_directory=REPO_ROOT / "parameter_scan_tglf",
             template_file=None
         )
     except Exception as e:
         print(f"Error writing parameter scan files: {e}")
         return None
 
-    pyro_copy = copy.copy(pyro)
-    pyro_copy.gk_input.data["WRITE_WAVEFUNCTION"] = 0
+    pryo_copy = copy.copy(pyro)
+
     # Switch to GS2
-    pyro_copy.gk_code = "GS2"   
+    pryo_copy.gk_code = "GS2"   
 
-
+    # pryo_copy.local_species.electron.domega_drho = 0.0
     # Create PyroScan object with more descriptive naming
     pyro_scan_gs2 = PyroScan(
-        pyro_copy,
+        pryo_copy,
         param_dict,
         value_fmt=".4f",  # Increased precision for small beta values
         value_separator="_",
         parameter_separator="_",
-        file_name="input.tglf",
-        base_directory="beta_scan_runs"
     )
-
 
     # Add proper parameter mapping for beta
     pyro_scan_gs2.add_parameter_key(
@@ -94,7 +96,7 @@ def main():
     try:
         pyro_scan_gs2.write(
             file_name="gs2.in",
-            base_directory="parameter_scan_gs2",
+            base_directory=REPO_ROOT / "parameter_scan_gs2",
             template_file=None
         )
     except Exception as e:
