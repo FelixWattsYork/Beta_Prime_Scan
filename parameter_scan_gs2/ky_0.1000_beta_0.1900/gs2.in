@@ -3,25 +3,27 @@
 /
 
 &kt_grids_single_parameters
-    aky = 0.15987576038990958
+    aky = 0.1
+    n0 = 40
+    rhostar_single = 0.0036679292286016
     theta0 = 0.0
 /
 
 &theta_grid_parameters
-    akappa = 1
-    akappri = 0.0
+    akappa = 2.5600490233845186
+    akappri = 0.06094878003996488
     geotype = 0
-    nperiod = 1
+    nperiod = 2
     ntheta = 32
-    qinp = 3.532410590000001
-    r_geo = 1.9601927232741403
-    rhoc = 0.64257292736641
-    rmaj = 1.9601927232741403
+    qinp = 3.4933206935065555
+    r_geo = 1.9625016348394586
+    rhoc = 0.6367692524514235
+    rmaj = 1.9625016348394586
     shat = 4.0
-    shift = -0.4035594653647496
+    shift = -0.3991883206232521
     shiftvert = 0.0
-    tri = 0.0
-    tripri = 0.0
+    tri = 0.28704443941635943
+    tripri = 0.4587164807583671
 /
 
 &theta_grid_knobs
@@ -29,31 +31,26 @@
 /
 
 &theta_grid_eik_knobs
-    beta_prime_input = -0.06858521100329061
+    beta_prime_input = -1.0541016213733618
     bishop = 4
     iflux = 0
     irho = 2
     local_eq = .true.
-    ntheta_geometry = 1024
-    s_hat_input = 1.2474651412041429
+    s_hat_input = 1.2049768696748901
     writelots = .true.
 /
 
 &le_grids_knobs
-    negrid = 8
-    nesub = 6
-    nesuper = 4
+    negrid = 16
     ngauss = 4
-    npassing = 7
 /
 
 &dist_fn_knobs
     adiabatic_option = 'iphi00=2'
-    g_exb = -0.0
+    g_exb = 0.0
     g_exbfac = 1.0
     mach = 0.0
     omprimfac = 1.0
-    opt_source = .true.
 /
 
 &fields_knobs
@@ -61,14 +58,15 @@
 /
 
 &knobs
-    beta = 0.24282245822239187
-    delt = 0.0014142135623730952
+    avail_cpu_time = 7200
+    beta = 0.19
+    delt = 0.05
     fapar = 1.0
     fbpar = 1.0
     fphi = 1.0
-    nstep = 500000
-    wstar_units = .true.
-    zeff = 2.7968410845213967
+    nstep = 100000
+    tite = 1.0
+    zeff = 1.0
 /
 
 &layouts_knobs
@@ -80,20 +78,20 @@
 /
 
 &species_knobs
-    nspec = 6
+    nspec = 3
 /
 
 &species_parameters_1
     bess_fac = 1.0
     dens = 1.0
-    fprim = 1.099516787430865
-    mass = 0.0002724437107605002
+    fprim = 1.0259072969136445
+    mass = 0.000272308510742333
     temp = 1.0
-    tprim = 1.594193266354108
+    tprim = 1.5782729114591723
     type = 'electron'
     uprim = 0.0
-    vnewk = 0.023382388106891534
-    z = -1.0
+    vnewk = 0.023113880803396502
+    z = -1
 /
 
 &dist_fn_species_knobs_1
@@ -103,15 +101,15 @@
 
 &species_parameters_2
     bess_fac = 1.0
-    dens = 0.42252661705864236
-    fprim = 1.1038890186664718
+    dens = 0.5314157487565477
+    fprim = 1.0604710453068735
     mass = 1.0
-    temp = 1.031441236194513
-    tprim = 1.8328880778956604
+    temp = 1.0328837640672761
+    tprim = 1.822864855360638
     type = 'ion'
     uprim = 0.0
-    vnewk = 0.00015567346620906855
-    z = 1.0
+    vnewk = 0.0001535254011821356
+    z = 1
 /
 
 &dist_fn_species_knobs_2
@@ -121,14 +119,14 @@
 
 &init_g_knobs
     chop_side = .false.
-    ginit_option = 'default'
+    ginit_option = 'random_sine'
     phiinit = 1e-05
 /
 
 &gs2_diagnostics_knobs
-    navg = 50
-    nsave = 5000
-    nwrite = 50
+    navg = 100
+    nsave = 50000
+    nwrite = 100
     omegatinst = 500.0
     omegatol = 0.0001
     save_for_restart = .true.
@@ -146,15 +144,15 @@
 
 &species_parameters_3
     bess_fac = 1.0
-    dens = 0.37272317809054833
-    fprim = 1.0330147655729207
-    mass = 1.4976017008888365
-    temp = 1.031441236194513
-    tprim = 1.8328880778956604
+    dens = 0.4685842512434522
+    fprim = 0.9893382572291216
+    mass = 1.5
+    temp = 1.0328837640672761
+    tprim = 1.822864855360638
     type = 'ion'
     uprim = 0.0
-    vnewk = 0.0001122144437977634
-    z = 1.0
+    vnewk = 0.00011053196194083802
+    z = 1
 /
 
 &dist_fn_species_knobs_3
@@ -162,56 +160,13 @@
     fexpr = 0.48
 /
 
-&species_parameters_4
-    bess_fac = 1.0
-    dens = 0.0008849903917240308
-    fprim = 7.178163207089973
-    mass = 2.000992991479094
-    temp = 81.11125644321899
-    tprim = 0.3779009078174903
-    type = 'ion'
-    uprim = 0.0
-    vnewk = 5.288607291887249e-09
-    z = 2.0
-/
-
-&dist_fn_species_knobs_4
-    bakdif = 0.05
-    fexpr = 0.48
-/
-
-&species_parameters_5
-    bess_fac = 1.0
-    dens = 0.0005669839175328201
-    fprim = 1.159527157511383
-    mass = 65.53252047094033
-    temp = 1.031441236194513
-    tprim = 1.8328880778956604
-    type = 'ion'
-    uprim = 0.0
-    vnewk = 0.21942083663426867
-    z = 54.0
-/
-
-&dist_fn_species_knobs_5
-    bakdif = 0.05
-    fexpr = 0.48
-/
-
-&species_parameters_6
-    bess_fac = 1.0
-    dens = 0.0861815560699016
-    fprim = 1.1595207417604951
-    mass = 2.000992991479094
-    temp = 1.031441236194513
-    tprim = 1.8328880778956604
-    type = 'ion'
-    uprim = 0.0
-    vnewk = 0.00035914684296591145
-    z = 2.0
-/
-
-&dist_fn_species_knobs_6
-    bakdif = 0.05
-    fexpr = 0.48
+&normalisations_knobs
+    aref = 2.0219477584391563
+    bref = 2.793237568317687
+    mref = 2.0135532125568343
+    nref = 1.8142662578771673e+20
+    rhoref = 0.007409482672977262
+    tref = 10262.654572912399
+    vref = 991731.1299054153
+    zref = 1.602176634e-19
 /
