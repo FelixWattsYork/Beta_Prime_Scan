@@ -249,8 +249,6 @@ def Read_from_gs2(step_case):
 
 def load_results(pyro_scan_tglf,pyro_scan_tglf_F,pyro_scan_tglf_M,pyro_scan_tglf_ML, pyro_scan_gs2):
     # Load output from tglf
-    print(pyro_scan_tglf)
-    print("heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
     pyro_scan_tglf.load_gk_output()
     data_tglf = pyro_scan_tglf.gk_output
     growth_rate_tglf = data_tglf['growth_rate']
@@ -505,37 +503,16 @@ if __name__ == "__main__":
     tglf_scans = []
     for name in gs2_scan_names:
         gs2_scans.append(load_gs2_pyroscan(step_case,PROJECT_NAME,name = name))
-    # for name in tglf_scan_names:
-    #     print("reading")
-    #     tglf_scans.append(load_tglf_pyroscan(step_case,PROJECT_NAME,name = name))
+    for name in tglf_scan_names:
+        tglf_scans.append(load_tglf_pyroscan(step_case,PROJECT_NAME,name = name))
 
     #run simulations
     # for scan in gs2_scans:
     #    run_simulations.gs2_scan(scan)
     
 
-    scan = load_tglf_pyroscan(step_case,PROJECT_NAME,name = "tglf_F")
-    keys = list(scan.parameter_dict.keys())
-    input_dict = {}
-    input_array = []
 
-    import itertools
-    print(scan.pyro_dict)
-    for count, combo in enumerate(
-        itertools.product(*scan.parameter_dict.values())
-    ):
-        current = dict(zip(keys, combo))  # easy access to all key–value pairs
-        name = scan.format_single_run_name(current)
-        print(f"name is {name}")
-        scan.update_self_parameters()
-        pyro_object = scan.pyro_dict[name]
-        print(pyro_object.numerics["ky"])
-    #gs2_gk_outp = gs2_gp(pyro=scan, models_path=models_path, models=models)
-    #print(gs2_gk_outp.gk_output["growth_rate_log_M12"])
-
-    # plot_location = REPO_ROOT / "Plots" / PROJECT_NAME / step_case 
-    # print(plot_location)
-    # print(tglf_scans)
-
-    # General_Plots.plot_2d(tglf_scans,tglf_scan_names,plot_location, Gaussian=True)
+    plot_location = REPO_ROOT / "Plots" / PROJECT_NAME / step_case 
+  
+    General_Plots.plot_2d(tglf_scans,tglf_scan_names,plot_location, Gaussian=True,parameter_1_range=(1,4))
 
