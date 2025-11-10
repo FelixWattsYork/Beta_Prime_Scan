@@ -186,3 +186,235 @@ def plot_2d(
         plot_location.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(filename, dpi=300)
         plt.close(fig)
+
+
+def Ground_Truth_2d(
+    ground_truth_run,
+    runs,
+    names,
+    plot_location,
+    Gaussian=False,
+    Gaussian_Model=None,
+    parameter_1_range=None,
+    parameter_2_range=None,
+):
+    growth_rate_list = []
+    mode_freq_list = []
+    data = ground_truth_run
+    ground_truth_growth_rate = data["growth_rate"]
+    ground_truth_mode_freq = data["mode_frequency"]
+    print(runs)
+    for run in runs:
+        print(run)
+        print(names)
+        data = run
+        growth_rate_list.append(data["growth_rate"])
+        mode_freq_list.append(data["mode_frequency"])
+    # Compute absolute model error relative to ground truth
+    difference_growth_list = [
+        growth_rate - ground_truth_growth_rate for growth_rate in growth_rate_list
+    ]
+
+    difference_mode_list = [
+        mode_frequency - ground_truth_mode_freq for mode_frequency in mode_freq_list
+    ]
+    if Gaussian:
+        Gaussian_growth_rate = Gaussian_Model["growth_rate_log_M12"]
+        Gaussian_mode_frequency = Gaussian_Model["mode_frequency_log_M12"]
+
+        # GP central predicted values (not bounds)
+        GP_growth_value = Gaussian_growth_rate.sel(output="value")
+        GP_mode_value = Gaussian_mode_frequency.sel(output="value")
+
+        # Compute GP - Ground Truth differences
+        gp_diff_growth = GP_growth_value - ground_truth_growth_rate
+        gp_diff_mode = GP_mode_value - ground_truth_mode_freq
+
+    for i in range(0, 2):
+        major_cord = list(growth_rate_list[0].coords)[i]
+        minor_cord = list(growth_rate_list[0].coords)[1 - i]
+
+        list_to_loop_over = growth_rate_list[0].coords[major_cord]
+        if i == 0:
+            if parameter_1_range != None:
+                list_to_loop_over = growth_rate_list[0].coords[major_cord][
+                    slice(*parameter_1_range)
+                ]
+        elif i == 1:
+            if parameter_2_range != None:
+                list_to_loop_over = growth_rate_list[0].coords[major_cord][
+                    slice(*parameter_2_range)
+                ]
+
+        n_rows = len(list_to_loop_over)
+        n_cols = 3
+        aspect_ratio = 2.0  # width:height ratio per subplot
+        width = aspect_ratio * n_cols * 3
+        height = n_rows * 2.5
+        fig = plt.figure(figsize=(width, height))
+        gs = gridspec.GridSpec(len(list_to_loop_over), 3, hspace=0, wspace=0.4)
+        axes = np.empty((len(list_to_loop_over), 3), dtype=object)
+
+        Plot_Title = f"Plot of Growth Rate and Frequency against {minor_cord} for fixed {major_cord}"
+
+        for j, coor in enumerate(list_to_loop_over):
+            # Create subplots
+            ax1 = fig.add_subplot(gs[j, 0])
+            ax2 = fig.add_subplot(gs[j, 1])
+            axes[j, 0] = ax1
+            axes[j, 1] = ax2
+
+            # Plot data
+            for growth_rate, mode_frequency, name in zip(
+                growth_rate_list, mode_freq_list, names
+            ):
+                ax1.plot(
+                    growth_rate[minor_cord],
+                    growth_rate.sel({major_cord: coor}).sel(mode=0),
+                    label=rf"{name}",
+                )
+                ax2.plot(
+                    mode_frequency[minor_cord],
+                    mode_frequency.sel({major_cord: coor}).sel(mode=0),
+                    label=rf"ground_truth",
+                )
+
+            # plot Ground Truth Values
+            ax1.plot(
+                ground_truth_growth_rate[minor_cord],
+                ground_truth_growth_rate.sel({major_cord: coor}),
+                label=rf"{name}",
+            )
+            ax2.plot(
+                ground_truth_mode_freq[minor_cord],
+                ground_truth_mode_freq.sel({major_cord: coor}),
+                label=rf"ground_truth",
+            )
+
+            ax3 = fig.add_subplot(gs[j, 2])
+            axes[j, 2] = ax3
+
+            for diff_growth, diff_mode, name in zip(
+                difference_growth_list, difference_mode_list, names
+            ):
+                ax3.plot(
+                    diff_growth[minor_cord],
+                    diff_growth.sel({major_cord: coor}).sel(mode=0),
+                    label=rf"{name}",
+                    linestyle="--",
+                    linewidth=2,
+                )
+            if Gaussian:
+                ax3.plot(
+                    gp_diff_growth[minor_cord],
+                    gp_diff_growth.sel({major_cord: coor}),
+                    label="GP − Ground Truth",
+                    color="green",
+                    linestyle=":",
+                    linewidth=2,
+                )
+
+            # Reference: Zero = perfect agreement
+            ax3.axhline(0, color="black", linewidth=1)
+
+            ax3.set_title("Model − Ground Truth", fontsize=12)
+            ax3.grid(True)
+
+            if Gaussian:
+                # Extract data
+                x1 = Gaussian_growth_rate[minor_cord]
+                y1 = Gaussian_growth_rate.sel({major_cord: coor}).sel(output="value")
+                y1_max = Gaussian_growth_rate.sel({major_cord: coor}).sel(
+                    output="max_value"
+                )
+                y1_min = Gaussian_growth_rate.sel({major_cord: coor}).sel(
+                    output="min_value"
+                )
+
+                x2 = Gaussian_mode_frequency[minor_cord]
+                y2 = Gaussian_mode_frequency.sel({major_cord: coor}).sel(output="value")
+                y2_max = Gaussian_mode_frequency.sel({major_cord: coor}).sel(
+                    output="max_value"
+                )
+                y2_min = Gaussian_mode_frequency.sel({major_cord: coor}).sel(
+                    output="min_value"
+                )
+
+                # Plot with shaded error region and dotted central line
+                # --- Growth rate ---
+                ax1.plot(
+                    x1, y1, linestyle=":", color="green", label="GS2_GP"
+                )  # dotted central line
+                ax1.fill_between(
+                    x1, y1_min, y1_max, color="green", alpha=0.2
+                )  # light shading
+
+                # --- Mode frequency ---
+                ax2.plot(
+                    x2, y2, linestyle=":", color="green", label="GS2_GP"
+                )  # dotted central line
+                ax2.fill_between(x2, y2_min, y2_max, color="green", alpha=0.2)
+
+            ax1.grid(True)
+            ax2.grid(True)
+
+            # Row label on right-hand side
+            ax2.text(
+                1.05,
+                0.5,
+                rf"{major_cord}={coor:.2f}",
+                transform=ax2.transAxes,
+                va="center",
+                ha="left",
+                fontsize=10,
+            )
+
+        for i in range(
+            len(growth_rate_list[0].coords[major_cord]) - 1
+        ):  # all rows except bottom
+            axes[i, 0].set_xticklabels([])
+            axes[i, 0].set_xlabel("")
+            axes[i, 1].set_xticklabels([])
+            axes[i, 1].set_xlabel("")
+
+        # Only bottom row gets x-axis labels
+        axes[-1, 0].set_xlabel(minor_cord)
+        axes[-1, 1].set_xlabel(minor_cord)
+
+        # Layout and title
+        fig.tight_layout(rect=[0, 0, 1, 0.96])
+        fig.suptitle(Plot_Title)
+
+        # Collect all handles and labels from every axis
+        handles, labels = [], []
+        for ax_row in axes:
+            for ax in ax_row:
+                h, l = ax.get_legend_handles_labels()
+                handles.extend(h)
+                labels.extend(l)
+                ax.tick_params(labelsize=11)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+
+        # Deduplicate by label
+        unique = dict(zip(labels, handles))
+
+        # Create one legend for the whole figure
+        fig.legend(
+            unique.values(),
+            unique.keys(),
+            loc="upper right",  # position above the subplots
+            fontsize=16,
+        )
+
+        plt.subplots_adjust(top=0.9, bottom=0.1)  # give room for legend and title
+        Plot_Name = f"fixed_{major_cord}_from_{list_to_loop_over[0].values}_to_{list_to_loop_over[-1].values}_against_ground_truth"
+        if Gaussian:
+            Plot_Name += "_with Gaussian"
+
+        # Save everything in ONE file
+        print(f"Saving Figure at location: {plot_location}")
+        filename = plot_location / f"{Plot_Name}.png"
+        plot_location.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(filename, dpi=300)
+        plt.close(fig)

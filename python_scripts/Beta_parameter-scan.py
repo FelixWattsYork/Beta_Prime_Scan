@@ -286,9 +286,16 @@ if __name__ == "__main__":
 
     plot_location = REPO_ROOT / "Plots" / PROJECT_NAME / step_case
 
-    all_scans = gs2_scans + tglf_scans
-    scan_names = gs2_scan_names + tglf_scan_names
+    # scan_names = gs2_scan_names + tglf_scan_names
 
-    General_Plots.plot_2d(
-        all_scans, scan_names, plot_location, Gaussian=True, parameter_1_range=(1, 4)
+    # General_Plots.plot_2d(
+    #   all_scans, scan_names, plot_location, Gaussian=True, parameter_1_range=(1, 4)
+    # )
+    General_Plots.Ground_Truth_2d(
+        gs2_scans[0],
+        tglf_scans,
+        tglf_scan_names,
+        plot_location,
+        Gaussian=True,
+        parameter_1_range=(1, 4),
     )
