@@ -9,7 +9,7 @@ import matplotlib.gridspec as gridspec
 
 
 # load models
-models_path = "/home/Felix/Documents/Physics_Work/Project_Codes/8d/"
+models_path = "/home/Felix/Documents/Physics_Work/Project_Codes/8d_Up4/"
 
 
 models = [
@@ -219,8 +219,8 @@ def Ground_Truth_2d(
         mode_frequency - ground_truth_mode_freq for mode_frequency in mode_freq_list
     ]
     if Gaussian:
-        Gaussian_growth_rate = Gaussian_Model["growth_rate_log_M12"]
-        Gaussian_mode_frequency = Gaussian_Model["mode_frequency_log_M12"]
+        Gaussian_growth_rate = Gaussian_Model["growth_rate_log"]
+        Gaussian_mode_frequency = Gaussian_Model["mode_frequency_log"]
 
         # GP central predicted values (not bounds)
         GP_growth_value = Gaussian_growth_rate.sel(output="value")

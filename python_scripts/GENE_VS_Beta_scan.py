@@ -21,7 +21,7 @@ PROJECT_NAME = "Beta_Prime_Scan"
 
 
 # load models
-models_path = "/home/Felix/Documents/Physics_Work/Project_Codes/8d_Up4/"
+models_path = "/home/Felix/Documents/Physics_Work/Project_Codes/8d/"
 
 
 models = [
@@ -266,7 +266,7 @@ def load_tglf_pyroscan(step_case, project, name="tglf"):
 
 
 if __name__ == "__main__":
-    step_case = "n40"
+    step_case = "R4"
 
     # Generate the input files
     Read_from_gs2(step_case)
@@ -281,8 +281,8 @@ if __name__ == "__main__":
         tglf_scans.append(load_tglf_pyroscan(step_case, PROJECT_NAME, name=name))
 
     # run simulations
-    # for scan in tglf_scans:
-    #    run_simulations.tglf_scan(scan)
+    for scan in tglf_scans:
+        run_simulations.tglf_scan(scan)
 
     plot_location = REPO_ROOT / "Plots" / PROJECT_NAME / step_case
 
