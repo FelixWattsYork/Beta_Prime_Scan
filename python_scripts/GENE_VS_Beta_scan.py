@@ -9,7 +9,7 @@ from pathlib import Path
 from pyrokinetics.diagnostics.gs2_gp import gs2_gp
 import run_simulations
 import json
-import General_Plots
+import python_scripts.general_plots as general_plots
 
 REPO_ROOT = (
     Path(__file__).resolve().parent.parent
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     # General_Plots.plot_2d(
     #   all_scans, scan_names, plot_location, Gaussian=True, parameter_1_range=(1, 4)
     # )
-    General_Plots.Ground_Truth_2d(
+    general_plots.Ground_Truth_2d(
         gs2_scans[0],
         tglf_scans,
         tglf_scan_names,
