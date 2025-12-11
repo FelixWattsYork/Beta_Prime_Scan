@@ -5,11 +5,11 @@ from pyrokinetics import Pyro, PyroScan
 import sys
 import argparse
 import difference_metric
-import python_scripts.general_plots as general_plots
+import general_plots as general_plots
 
 
 
-from python_scripts.run_simulations import tglf_scan
+from run_simulations import tglf_scan
 
 REPO_ROOT = (
     Path(__file__).resolve().parent.parent
@@ -19,51 +19,6 @@ REPO_ROOT = (
 GYRO_DATA = Path(os.environ["GYRO_DATA_DIR"]).expanduser()
 
 
-args = sys.argv[1:]
-work_folder = args[0] if args else "."
-
-parser = argparse.ArgumentParser(description="Case: Which tokamak case to read")
-parser.add_argument("case", help="a case to process")
-parser.add_argument("project_name", help="the type of scan being performed")
-
-
-parser.add_argument(
-    "-l",
-    "--load",
-    action="store_true",  # Makes this a boolean flag
-    help="Loades the GK Output either from the raw files or from netcdf",
-)
-parser.add_argument(
-    "-rc",
-    "--read_netcdf",
-    action="store_true",  # Makes this a boolean flag
-    help="Reads the GK Output from the netcdf",
-)
-parser.add_argument(
-    "-p",
-    "--plot",
-    action="store_true",  # Makes this a boolean flag
-    help="Plots the results",
-)
-parser.add_argument(
-    "-c",
-    "--calculate_difference_metric",
-    action="store_true",  # Makes this a boolean flag
-    help="Calculates the differences between two scans",
-)
-parser.add_argument(
-    "-wc",
-    "--write_netcdf",
-    action="store_true",  # Makes this a boolean flag
-    help="writes netcdf of GK ouptut",
-)
-parser.add_argument(
-    "-g",
-    "--include_Gaussian",
-    action="store_true",  # Makes this a boolean flag
-    help="Include to add William's Gaussian Regresion model to plots",
-)
-args = parser.parse_args()
 
 
 models_path = "/home/Felix/Documents/Physics_Work/Project_Codes/8d_Up4/"  # This is using the 3000 data point model as opposed to the 100000 data point model for testing purposes
@@ -125,61 +80,117 @@ def load_tglf_pyroscan_gs2(step_case, project, name="tglf"):
     pyro_object.gk_code = "TGLF"
     return PyroScan(pyro=pyro_object, pyroscan_json=json_path)
 
+def load_list(case,project_name,tglf_list, write_netcdf = False,read_netcdf = False):
+    gs2_pyroscan, GS2_convention = load_GS2_pyroscan(case, project_name)
+    tglf_pyroscan_dict = {
+        tglf: load_tglf_pyroscan_gs2(case, project_name, name=f"{tglf}")
+        for tglf in tglf_list
+    }
+
+    if write_netcdf:
+        gs2_pyroscan.load_gk_output()
+        gs2_pyroscan.gk_output.to_netcdf(
+            GYRO_DATA
+            / "GS2"
+            / "Runs"
+            / project_name
+            / case
+            / "parameter_scan_gs2"
+            / "gs2.cdf"
+        )
+        for tglf_name, tglf_pyroscan in tglf_pyroscan_dict.items():
+            tglf_pyroscan.load_gk_output()
+            tglf_pyroscan.gk_output.to_netcdf(
+                GYRO_DATA
+                / "TGLF"
+                / "Runs"
+                / project_name
+                / case
+                / f"parameter_scan_{tglf_name}"
+                / f"{tglf_name}.cdf"
+            )
+    if read_netcdf:
+        gs2_pyroscan.gk_output = PyroScanGKOutput.from_netcdf(
+            GYRO_DATA
+            / "GS2"
+            / "Runs"
+            / project_name
+            / case
+            / "parameter_scan_gs2"
+            / "gs2.cdf"
+        )
+        for tglf_name, tglf_pyroscan in tglf_pyroscan_dict.items():
+            tglf_pyroscan.gk_output = PyroScanGKOutput.from_netcdf(
+                GYRO_DATA
+                / "TGLF"
+                / "Runs"
+                / project_name
+                / case
+                / f"parameter_scan_{tglf_name}"
+                / f"{tglf_name}.cdf"
+            )
+            tglf_pyroscan.gk_output.to(GS2_convention)
+            # Convert all tglf ouptuts to the GS2 normalisation
+    return (gs2_pyroscan,GS2_convention, tglf_pyroscan_dict)
+
 
 if __name__ == "__main__":
+    args = sys.argv[1:]
+    work_folder = args[0] if args else "."
+
+    parser = argparse.ArgumentParser(description="Case: Which tokamak case to read")
+    parser.add_argument("case", help="a case to process")
+    parser.add_argument("project_name", help="the type of scan being performed")
+
+
+    parser.add_argument(
+        "-l",
+        "--load",
+        action="store_true",  # Makes this a boolean flag
+        help="Loades the GK Output either from the raw files or from netcdf",
+    )
+    parser.add_argument(
+        "-rc",
+        "--read_netcdf",
+        action="store_true",  # Makes this a boolean flag
+        help="Reads the GK Output from the netcdf",
+    )
+    parser.add_argument(
+        "-p",
+        "--plot",
+        action="store_true",  # Makes this a boolean flag
+        help="Plots the results",
+    )
+    parser.add_argument(
+        "-c",
+        "--calculate_difference_metric",
+        action="store_true",  # Makes this a boolean flag
+        help="Calculates the differences between two scans",
+    )
+    parser.add_argument(
+        "-wc",
+        "--write_netcdf",
+        action="store_true",  # Makes this a boolean flag
+        help="writes netcdf of GK ouptut",
+    )
+    parser.add_argument(
+        "-g",
+        "--include_Gaussian",
+        action="store_true",  # Makes this a boolean flag
+        help="Include to add William's Gaussian Regresion model to plots",
+    )
+    args = parser.parse_args()
+
+
+
+
+
+
     tglf_list = ["tglf", "tglf_F", "tglf_M"]
 
     if args.load:
-        gs2_pyroscan, GS2_convention = load_GS2_pyroscan(args.case, args.project_name)
-        tglf_pyroscan_dict = {
-            tglf: load_tglf_pyroscan_gs2(args.case, args.project_name, name=f"{tglf}")
-            for tglf in tglf_list
-        }
+        gs2_pyroscan,GS2_convention, tglf_pyroscan_dict = load_list(args.case,args.project_name,tglf_list,read_netcdf=args.read_netcdf,write_netcdf=args.write_netcdf)
 
-        if args.write_netcdf:
-            gs2_pyroscan.load_gk_output()
-            gs2_pyroscan.gk_output.to_netcdf(
-                GYRO_DATA
-                / "GS2"
-                / "Runs"
-                / args.project_name
-                / args.case
-                / "parameter_scan_gs2"
-                / "gs2.cdf"
-            )
-            for tglf_name, tglf_pyroscan in tglf_pyroscan_dict.items():
-                tglf_pyroscan.load_gk_output()
-                tglf_pyroscan.gk_output.to_netcdf(
-                    GYRO_DATA
-                    / "TGLF"
-                    / "Runs"
-                    / args.project_name
-                    / args.case
-                    / f"parameter_scan_{tglf_name}"
-                    / f"{tglf_name}.cdf"
-                )
-        if args.read_netcdf:
-            gs2_pyroscan.gk_output = PyroScanGKOutput.from_netcdf(
-                GYRO_DATA
-                / "GS2"
-                / "Runs"
-                / args.project_name
-                / args.case
-                / "parameter_scan_gs2"
-                / "gs2.cdf"
-            )
-            for tglf_name, tglf_pyroscan in tglf_pyroscan_dict.items():
-                tglf_pyroscan.gk_output = PyroScanGKOutput.from_netcdf(
-                    GYRO_DATA
-                    / "TGLF"
-                    / "Runs"
-                    / args.project_name
-                    / args.case
-                    / f"parameter_scan_{tglf_name}"
-                    / f"{tglf_name}.cdf"
-                )
-                tglf_pyroscan.gk_output.to(GS2_convention)
-                # Convert all tglf ouptuts to the GS2 normalisation
     if args.include_Gaussian:
         from pyrokinetics.diagnostics.gs2_gp import gs2_gp
         Gaussian_Model = gs2_gp(pyro=gs2_pyroscan, models_path=models_path, models=models)
