@@ -8,7 +8,6 @@ import difference_metric
 import general_plots as general_plots
 
 
-
 from run_simulations import tglf_scan
 
 REPO_ROOT = (
@@ -16,11 +15,9 @@ REPO_ROOT = (
 )  # repo root if this file sits at repo root
 
 
-GYRO_DATA = Path(os.environ["GYRO_DATA_DIR"]).expanduser()
+#GYRO_DATA = Path(os.environ["GYRO_DATA_DIR"]).expanduser()
 
-
-
-
+GYRO_DATA = Path("/mnt/data/Gyrokinetic_Simulations")
 models_path = "/home/Felix/Documents/Physics_Work/Project_Codes/8d_Up4/"  # This is using the 3000 data point model as opposed to the 100000 data point model for testing purposes
 
 
@@ -39,7 +36,7 @@ models = [
 ]
 
 
-def load_GS2_pyroscan(step_case, project, name="gs2"):
+def load_GS2_pyroscan(step_case, project, name="GS2"):
     run_folder_loc = (
         GYRO_DATA / "GS2" / "Runs" / project / step_case / f"parameter_scan_{name}"
     )
@@ -80,7 +77,8 @@ def load_tglf_pyroscan_gs2(step_case, project, name="tglf"):
     pyro_object.gk_code = "TGLF"
     return PyroScan(pyro=pyro_object, pyroscan_json=json_path)
 
-def load_list(case,project_name,tglf_list, write_netcdf = False,read_netcdf = False):
+
+def load_list(case, project_name, tglf_list, write_netcdf=False, read_netcdf=False):
     gs2_pyroscan, GS2_convention = load_GS2_pyroscan(case, project_name)
     tglf_pyroscan_dict = {
         tglf: load_tglf_pyroscan_gs2(case, project_name, name=f"{tglf}")
@@ -131,7 +129,7 @@ def load_list(case,project_name,tglf_list, write_netcdf = False,read_netcdf = Fa
             )
             tglf_pyroscan.gk_output.to(GS2_convention)
             # Convert all tglf ouptuts to the GS2 normalisation
-    return (gs2_pyroscan,GS2_convention, tglf_pyroscan_dict)
+    return (gs2_pyroscan, GS2_convention, tglf_pyroscan_dict)
 
 
 if __name__ == "__main__":
@@ -141,7 +139,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Case: Which tokamak case to read")
     parser.add_argument("case", help="a case to process")
     parser.add_argument("project_name", help="the type of scan being performed")
-
 
     parser.add_argument(
         "-l",
@@ -181,19 +178,23 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-
-
-
-
-
     tglf_list = ["tglf", "tglf_F", "tglf_M"]
 
     if args.load:
-        gs2_pyroscan,GS2_convention, tglf_pyroscan_dict = load_list(args.case,args.project_name,tglf_list,read_netcdf=args.read_netcdf,write_netcdf=args.write_netcdf)
-
+        gs2_pyroscan, GS2_convention, tglf_pyroscan_dict = load_list(
+            args.case,
+            args.project_name,
+            tglf_list,
+            read_netcdf=args.read_netcdf,
+            write_netcdf=args.write_netcdf,
+        )
+        exit()
     if args.include_Gaussian:
         from pyrokinetics.diagnostics.gs2_gp import gs2_gp
-        Gaussian_Model = gs2_gp(pyro=gs2_pyroscan, models_path=models_path, models=models)
+
+        Gaussian_Model = gs2_gp(
+            pyro=gs2_pyroscan, models_path=models_path, models=models
+        )
         Gaussian_Model.evaluate_nonlinear_flux()
     # gs2rate GP
     if args.plot:
@@ -206,7 +207,6 @@ if __name__ == "__main__":
 
         plot_location = REPO_ROOT / "Plots" / args.project_name / args.case
         if args.include_Gaussian:
-
             general_plots.Ground_Truth_2d(
                 gs2_pyroscan.gk_output,
                 tglf_gk_outputs,
@@ -247,14 +247,22 @@ if __name__ == "__main__":
             dm_basic = difference_metric.basic(
                 ground_truth_gr=gs2_pyroscan.gk_output["growth_rate"],
                 ground_truth_freq=gs2_pyroscan.gk_output["mode_frequency"],
-                alternative_gr=Gaussian_Model.gk_output["growth_rate_log"].sel(output="value"),
-                alternative_freq=Gaussian_Model.gk_output["mode_frequency_log"].sel(output="value"),
+                alternative_gr=Gaussian_Model.gk_output["growth_rate_log"].sel(
+                    output="value"
+                ),
+                alternative_freq=Gaussian_Model.gk_output["mode_frequency_log"].sel(
+                    output="value"
+                ),
             )
             print(f"  Basic: {dm_basic}")
             dm_stabalized = difference_metric.stabalized(
                 ground_truth_gr=gs2_pyroscan.gk_output["growth_rate"],
                 ground_truth_freq=gs2_pyroscan.gk_output["mode_frequency"],
-                alternative_gr=Gaussian_Model.gk_output["growth_rate_log"].sel(output="value"),
-                alternative_freq=Gaussian_Model.gk_output["mode_frequency_log"].sel(output="value"),
+                alternative_gr=Gaussian_Model.gk_output["growth_rate_log"].sel(
+                    output="value"
+                ),
+                alternative_freq=Gaussian_Model.gk_output["mode_frequency_log"].sel(
+                    output="value"
+                ),
             )
             print(f" Stabalised: {dm_stabalized}")

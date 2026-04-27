@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 
 
 def basic(ground_truth_gr, ground_truth_freq, alternative_gr, alternative_freq):
@@ -13,10 +13,27 @@ def basic(ground_truth_gr, ground_truth_freq, alternative_gr, alternative_freq):
     float: The calculated difference metric.
     """
     # Calculate the weighted absolute differences
-    gr_diff = numpy.abs(ground_truth_gr - alternative_gr)
-    freq_diff = numpy.abs(ground_truth_freq - alternative_freq)
+    gr_diff = np.abs(ground_truth_gr - alternative_gr)
+    freq_diff = np.abs(ground_truth_freq - alternative_freq)
     # Sum the weighted differences to get the final metric
-    difference_metric_value = numpy.sum(gr_diff.data) + numpy.sum(freq_diff.data)
+    difference_metric_value = np.sum(gr_diff.data) + numpy.sum(freq_diff.data)
+    return difference_metric_value
+
+
+def averaged(ground_truth_gr, ground_truth_freq, alternative_gr, alternative_freq):
+    """
+    Calculate the average absolute error between two sets of data.
+
+    Returns
+    -------
+    float
+        Average absolute error over all dimensions.
+    """
+    gr_diff = np.abs(ground_truth_gr - alternative_gr)
+    freq_diff = np.abs(ground_truth_freq - alternative_freq)
+
+    difference_metric_value = gr_diff.mean().item() + freq_diff.mean().item()
+
     return difference_metric_value
 
 
@@ -38,8 +55,8 @@ def stabalized(ground_truth_gr, ground_truth_freq, alternative_gr, alternative_f
     alternative_gr = alternative_gr.where(alternative_gr >= threshold, drop=True)
     alternative_freq = alternative_freq.where(alternative_gr >= threshold, drop=True)
     # Calculate the weighted absolute differences
-    gr_diff = numpy.abs(ground_truth_gr - alternative_gr)
-    freq_diff = numpy.abs(ground_truth_freq - alternative_freq)
+    gr_diff = np.abs(ground_truth_gr - alternative_gr)
+    freq_diff = np.abs(ground_truth_freq - alternative_freq)
     # Sum the weighted differences to get the final metric
-    difference_metric_value = numpy.sum(gr_diff.data) + numpy.sum(freq_diff.data)
+    difference_metric_value = np.sum(gr_diff.data) + numpy.sum(freq_diff.data)
     return difference_metric_value
